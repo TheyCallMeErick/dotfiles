@@ -1,0 +1,121 @@
+configuration {
+    font: "JetBrainsMono 12";
+    show-icons: true;
+    cycle: true;
+    terminal: "rofi-sensible-terminal";
+    run-command: "{cmd}";
+    run-shell-command: "{terminal} -e {cmd}";
+    drun-displat-format: "{icon} {name}";
+    case-sensitive: false;
+    modi: "window,run,drun";
+    sorting-method: "normal";
+    max-history-size: 25;
+}
+
+@theme "/dev/null"
+
+* {
+    background:  #05080CB3;
+    foreground:  #DCDCDCF2;
+    selected-background: #12161C99;
+    selected-foreground: #2696FFE6;
+    urgent-background:   #DC3246E6;
+    alternate-background: #1b212e99;
+
+    fg: #7B7F92;
+    background-color: @background;
+    text-color: #e6e6e6;
+    border-color: White;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    border: 2px solid ;
+    border-color: #29c7f7;
+    border-radius: 12px;
+    width: 50%;
+    max-width: 600px;
+    min-width: 400px;
+}
+
+mainbox {
+    children: [inputbar, listview];
+    spacing: 10px;
+}
+
+inputbar {
+    children: [prompt, entry];
+}
+
+entry {
+    background-color: @alternate-background;
+    placeholder: "Type here...";
+    padding: 12px 16px;
+    font-size: 18px;
+}
+
+element-icon {
+    background-color: inherit;
+    text-color: inherit;
+    vertical-align: 0.5;
+    size: 30px;
+    width: 30px;
+    height: 30px;
+}
+
+element-text {
+    background-color: inherit;
+    text-color: inherit;
+    vertical-align: 0.5;
+    font-size: 20px;
+}
+
+listview {
+    lines: 10;
+    columns: 2;
+    fixed-height: 50px;
+    spacing: 6px;
+    padding: 6px;
+}
+
+prompt {
+    enabled: false;
+}
+
+row {
+    children: ["icon", "text"];
+}
+
+icon {
+    padding: 4px;
+    width: 30px;
+    height: 30px;
+}
+
+text {
+    font-size: 20px;
+}
+
+element {
+    padding: 12px;
+    spacing: 8px;
+    border-radius: 12px;
+}
+
+element selected {
+    background-color: @fg;
+    text-color: #fff;
+}
+
+element urgent {
+    background-color: #f75c29;
+    text-color: #0b0d12;
+}
+
+element warning {
+    background-color: #d9b44a;
+    text-color: #0b0d12;
+}
