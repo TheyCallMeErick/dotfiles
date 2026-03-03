@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
+echo "🚀 Iniciando setup completo..."
+
 # =========================
 # YAY
 # =========================
 
-if ! command -v yay &> /dev/null
-then
+if ! command -v yay &> /dev/null; then
+  echo "📦 Instalando yay..."
   sudo pacman -S --needed --noconfirm base-devel git
   git clone https://aur.archlinux.org/yay.git
   cd yay
@@ -15,29 +17,49 @@ then
 fi
 
 # =========================
-# UPDATE
+# UPDATE SYSTEM
 # =========================
 
+echo "🔄 Atualizando sistema..."
 yay -Syu --noconfirm
 
 # =========================
-# BASE DEV
+# BASE DEV + TERMINAL TOOLS
 # =========================
 
-yay -S --noconfirm \
+echo "🛠 Instalando ferramentas base e terminal..."
+yay -S --needed --noconfirm \
   stow \
   rust \
   go \
   git \
-  curl
+  curl \
+  nodejs \
+  npm \
+  dotnet-sdk \
+  postgresql \
+  redis \
+  neovim \
+  tmux \
+  fzf \
+  ripgrep \
+  btop \
+  starship \
+  zoxide \
+  bat \
+  eza \
+  jq \
+  httpie \
+  direnv \
+  pre-commit
 
 # =========================
-# DOCKER
+# DOCKER + TUI
 # =========================
 
-if ! command -v docker &> /dev/null
-then
-  yay -S --noconfirm docker docker-compose
+if ! command -v docker &> /dev/null; then
+  echo "🐳 Instalando Docker..."
+  yay -S --needed --noconfirm docker docker-compose lazydocker
   sudo systemctl enable --now docker
 fi
 
@@ -46,11 +68,18 @@ if ! groups $USER | grep -q docker; then
 fi
 
 # =========================
-# ZSH & OH MY ZSH
+# DATABASE TOOLS
+# =========================
+
+yay -S --needed --noconfirm pgcli
+
+# =========================
+# ZSH + OH MY ZSH
 # =========================
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  yay -S --noconfirm zsh
+  echo "💻 Instalando ZSH..."
+  yay -S --needed --noconfirm zsh
   chsh -s $(which zsh)
 
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -62,26 +91,67 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
     ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 fi
 
+# Starship + Zoxide config
+if ! grep -q "starship init" ~/.zshrc; then
+  echo 'eval "$(starship init zsh)"' >> ~/.zshrc
+fi
+
+if ! grep -q "zoxide init" ~/.zshrc; then
+  echo 'eval "$(zoxide init zsh)"' >> ~/.zshrc
+fi
+
+# Aliases
+if ! grep -q "alias ls=" ~/.zshrc; then
+  echo 'alias ls="eza --icons"' >> ~/.zshrc
+fi
+
+# =========================
+# HYPRLAND CORE (NOCTALIA)
+# =========================
+
+echo "🪟 Instalando Hyprland base..."
+yay -S --needed --noconfirm \
+  hyprland \
+  hyprpaper \
+  hyprlock \
+  hypridle \
+  waybar \
+  rofi-wayland \
+  kitty \
+  swww \
+  grim \
+  slurp \
+  wl-clipboard \
+  wl-clipboard-history \
+  pipewire \
+  wireplumber \
+  xdg-desktop-portal-hyprland \
+  udiskie \
+  power-profiles-daemon
+
+sudo systemctl enable --now power-profiles-daemon
+
 # =========================
 # FONTS
 # =========================
 
-yay -S --noconfirm \
+yay -S --needed --noconfirm \
   ttf-fira-code \
   ttf-nerd-fonts-symbols
 
 # =========================
-# SOFTWARES
+# DESKTOP SOFTWARE
 # =========================
 
-yay -S --noconfirm \
+yay -S --needed --noconfirm \
   obs-studio \
   qbittorrent \
   code \
   brave-browser \
-  clipse \
   1password \
-  flatpak
+  flatpak \
+  mangohud \
+  gamemode
 
 # =========================
 # FLATPAK APPS
@@ -94,7 +164,7 @@ flatpak install -y flathub com.valvesoftware.Steam
 flatpak install -y flathub app.ytmdesktop.ytmdesktop
 
 # =========================
-# CLIPVAULT
+# RUST TOOL
 # =========================
 
 if ! command -v clipvault &> /dev/null; then
@@ -119,18 +189,21 @@ git config --global init.defaultBranch main
 git config --global core.editor "code --wait"
 
 # =========================
-# HYDE INSTALL
+# NOCTALIA INSTALL
 # =========================
 
-if [ ! -d "$HOME/HyDE" ]; then
-  echo "Instalando HyDE..."
-  git clone https://github.com/HyDE-Project/HyDE.git
-  cd HyDE
+if [ ! -d "$HOME/noctalia" ]; then
+  echo "🌙 Instalando Noctalia..."
+  git clone https://github.com/noctalia-dev/noctalia.git
+  cd noctalia
   chmod +x install.sh
   ./install.sh
   cd ..
 else
-  echo "HyDE já está instalado."
+  echo "Noctalia já instalado."
 fi
 
-echo "Setup completo"
+echo ""
+echo "✅ SETUP COMPLETO FINALIZADO"
+echo "⚠️ Reinicie e selecione a sessão Hyprland/Noctalia."
+echo "⚠️ Faça logout/login para aplicar grupo docker."
