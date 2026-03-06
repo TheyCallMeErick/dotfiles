@@ -1,63 +1,155 @@
 #!/usr/bin/env bash
 set -e
 
-export DEBIAN_FRONTEND=noninteractive
-export CI=true
-
-echo "🚀 Iniciando setup automático..."
+echo "🚀 Iniciando setup Fedora + Hyprland..."
 
 # =========================
-# YAY
+# SYSTEM UPDATE
 # =========================
 
-if ! command -v yay &> /dev/null; then
-  sudo pacman -S --needed --noconfirm base-devel git
-
-  git clone --depth 1 https://aur.archlinux.org/yay.git
-  cd yay
-  makepkg -si --noconfirm
-  cd ..
-fi
+sudo dnf upgrade -y
 
 # =========================
-# UPDATE SYSTEM
+# RPM FUSION
 # =========================
 
-yay -Syu --noconfirm
+sudo dnf install -y \
+https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
+https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+
+sudo dnf update -y
 
 # =========================
 # BASE DEV
 # =========================
 
-yay -S --needed --noconfirm \
-stow rust go git curl nodejs npm \
-dotnet-sdk postgresql redis \
-neovim tmux fzf ripgrep btop \
-starship zoxide bat eza jq httpie \
-direnv pre-commit unzip fd \
-base-devel cmake ninja
+sudo dnf install -y \
+git curl wget stow \
+neovim tmux fzf ripgrep fd \
+btop jq unzip \
+gcc gcc-c++ make cmake ninja-build \
+nodejs npm \
+rust cargo \
+golang \
+dotnet-sdk-8.0 \
+postgresql-server postgresql \
+redis \
+zsh \
+starship \
+zoxide \
+bat \
+eza \
+direnv \
+pre-commit
 
 # =========================
 # DOCKER
 # =========================
 
-yay -S --needed --noconfirm \
-docker docker-compose lazydocker
+sudo dnf install -y \
+docker \
+docker-compose-plugin
 
-sudo systemctl enable --now docker || true
-sudo usermod -aG docker $USER || true
-
-# =========================
-# DATABASE
-# =========================
-
-yay -S --needed --noconfirm pgcli
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
 
 # =========================
-# ZSH
+# DATABASE TOOLS
 # =========================
 
-yay -S --needed --noconfirm zsh
+sudo dnf install -y pgcli
+
+# =========================
+# TERMINAL
+# =========================
+
+sudo dnf install -y kitty
+
+# =========================
+# WAYLAND / HYPRLAND
+# =========================
+
+sudo dnf install -y \
+hyprland \
+waybar \
+rofi-wayland \
+hyprpaper \
+hyprlock \
+hypridle \
+grim \
+slurp \
+wl-clipboard \
+pipewire \
+wireplumber \
+xdg-desktop-portal-hyprland \
+brightnessctl \
+playerctl \
+network-manager-applet \
+blueman \
+udiskie
+
+# =========================
+# DISPLAY MANAGEMENT
+# =========================
+
+sudo dnf install -y \
+kanshi \
+wdisplays \
+wlr-randr
+
+# =========================
+# FONTS
+# =========================
+
+sudo dnf install -y \
+fira-code-fonts \
+google-noto-fonts \
+google-noto-emoji-fonts
+
+# =========================
+# BROWSERS
+# =========================
+
+sudo dnf install -y \
+brave-browser
+
+# =========================
+# FLATPAK
+# =========================
+
+sudo dnf install -y flatpak
+
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+flatpak install -y flathub \
+com.discordapp.Discord \
+app.ytmdesktop.ytmdesktop \
+com.valvesoftware.Steam \
+com.usebottles.bottles
+
+# =========================
+# GAMING
+# =========================
+
+sudo dnf install -y \
+steam \
+wine \
+winetricks \
+gamemode \
+mangohud
+
+# =========================
+# LAZYVIM
+# =========================
+
+if [ ! -d "$HOME/.config/nvim" ]; then
+git clone https://github.com/LazyVim/starter ~/.config/nvim
+rm -rf ~/.config/nvim/.git
+fi
+
+# =========================
+# ZSH + OH MY ZSH
+# =========================
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
 
@@ -68,10 +160,10 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 
 fi
 
-git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions \
+git clone https://github.com/zsh-users/zsh-autosuggestions \
 ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions || true
 
-git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting \
+git clone https://github.com/zsh-users/zsh-syntax-highlighting \
 ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting || true
 
 # =========================
@@ -83,82 +175,16 @@ grep -qxF 'eval "$(zoxide init zsh)"' ~/.zshrc || echo 'eval "$(zoxide init zsh)
 grep -qxF 'alias ls="eza --icons"' ~/.zshrc || echo 'alias ls="eza --icons"' >> ~/.zshrc
 
 # =========================
-# HYPRLAND
-# =========================
-
-yay -S --needed --noconfirm \
-hyprland hyprpaper hyprlock hypridle \
-waybar rofi-wayland kitty swww \
-grim slurp wl-clipboard \
-pipewire wireplumber \
-xdg-desktop-portal-hyprland \
-udiskie power-profiles-daemon
-
-sudo systemctl enable --now power-profiles-daemon || true
-
-# =========================
-# FONTS
-# =========================
-
-yay -S --needed --noconfirm \
-ttf-fira-code \
-ttf-nerd-fonts-symbols \
-noto-fonts \
-noto-fonts-emoji
-
-# =========================
-# DESKTOP SOFTWARE
-# =========================
-
-yay -S --needed --noconfirm \
-obs-studio \
-qbittorrent \
-visual-studio-code-bin \
-brave-browser \
-vivaldi \
-1password \
-flatpak \
-mangohud \
-gamemode
-
-# =========================
-# GAMING
-# =========================
-
-yay -S --needed --noconfirm \
-steam \
-wine \
-wine-gecko \
-wine-mono \
-winetricks
-
-# =========================
-# FLATPAK
-# =========================
-
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-flatpak install -y flathub com.discordapp.Discord
-flatpak install -y flathub app.ytmdesktop.ytmdesktop
-
-# =========================
-# LAZYVIM
-# =========================
-
-if [ ! -d "$HOME/.config/nvim" ]; then
-git clone --depth 1 https://github.com/LazyVim/starter ~/.config/nvim
-rm -rf ~/.config/nvim/.git
-fi
-
-# =========================
 # ASDF
 # =========================
 
 if [ ! -d "$HOME/.asdf" ]; then
-git clone --depth 1 https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+
+git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
 
 echo '. "$HOME/.asdf/asdf.sh"' >> ~/.zshrc
 echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.zshrc
+
 fi
 
 source "$HOME/.asdf/asdf.sh"
@@ -185,55 +211,95 @@ asdf global php latest
 # =========================
 
 if [ ! -d "$HOME/flutter" ]; then
-git clone --depth 1 https://github.com/flutter/flutter.git -b stable ~/flutter
 
-grep -qxF 'export PATH="$PATH:$HOME/flutter/bin"' ~/.zshrc || \
+git clone https://github.com/flutter/flutter.git -b stable ~/flutter
+
 echo 'export PATH="$PATH:$HOME/flutter/bin"' >> ~/.zshrc
+
 fi
 
 # =========================
 # ANDROID SDK
 # =========================
 
-yay -S --needed --noconfirm \
-android-sdk \
-android-sdk-platform-tools \
-android-sdk-build-tools \
-android-sdk-cmdline-tools-latest
+sudo dnf install -y \
+android-tools
 
-grep -qxF 'export ANDROID_HOME=$HOME/Android/Sdk' ~/.zshrc || \
+mkdir -p $HOME/Android/Sdk
+
 echo 'export ANDROID_HOME=$HOME/Android/Sdk' >> ~/.zshrc
-
-grep -qxF 'export PATH=$PATH:$ANDROID_HOME/platform-tools' ~/.zshrc || \
 echo 'export PATH=$PATH:$ANDROID_HOME/platform-tools' >> ~/.zshrc
 
-grep -qxF 'export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin' ~/.zshrc || \
-echo 'export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin' >> ~/.zshrc
-
-export ANDROID_HOME=$HOME/Android/Sdk
-
-yes | sdkmanager --licenses
-
-sdkmanager \
-"platform-tools" \
-"platforms;android-34" \
-"build-tools;34.0.0"
-
 # =========================
-# HYDE
+# DOTFILES STRUCTURE
 # =========================
 
-if [ ! -d "$HOME/HyDE" ]; then
-git clone --depth 1 https://github.com/HyDE-Project/HyDE ~/HyDE
-cd ~/HyDE
-chmod +x install.sh
-yes | ./install.sh
-cd ~
-fi
+mkdir -p ~/dotfiles
+
+cd ~/dotfiles
+
+mkdir -p \
+hypr \
+waybar \
+rofi \
+kitty \
+zsh
+
+echo "📁 Estrutura de dotfiles criada em ~/dotfiles"
+
+# =========================
+# WAYBAR CONFIG BASE
+# =========================
+
+mkdir -p ~/.config/waybar
+
+cat <<EOF > ~/.config/waybar/config
+{
+ "layer": "top",
+ "position": "top",
+ "modules-left": ["hyprland/workspaces"],
+ "modules-center": ["clock"],
+ "modules-right": ["pulseaudio","network","cpu","memory","tray"]
+}
+EOF
+
+# =========================
+# ROFI STYLE (HYDE LIKE)
+# =========================
+
+mkdir -p ~/.config/rofi
+
+cat <<EOF > ~/.config/rofi/config.rasi
+configuration {
+    show-icons: true;
+    display-drun: "Apps";
+}
+
+@theme "gruvbox-dark"
+EOF
+
+# =========================
+# HYPRLAND BASE CONFIG
+# =========================
+
+mkdir -p ~/.config/hypr
+
+cat <<EOF > ~/.config/hypr/hyprland.conf
+exec-once = waybar
+exec-once = hyprpaper
+exec-once = kanshi
+exec-once = nm-applet
+exec-once = blueman-applet
+
+bind = SUPER, RETURN, exec, kitty
+bind = SUPER, SPACE, exec, rofi -show drun
+bind = SUPER, Q, killactive
+bind = SUPER, E, exec, thunar
+EOF
 
 echo ""
-echo "✅ SETUP AUTOMÁTICO FINALIZADO"
+echo "✅ SETUP FINALIZADO"
 echo ""
-echo "⚠️ Reinicie o sistema."
-echo "⚠️ Após login execute:"
+echo "⚠️ Reinicie o sistema"
+echo "⚠️ Depois execute:"
 echo "flutter doctor"
